@@ -264,8 +264,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Number keys for quick tab switching
+        // Number keys for quick tab switching (only when not typing in input fields)
         if (e.key >= '1' && e.key <= '4' && !e.ctrlKey && !e.altKey) {
+            // Don't trigger tab switch if user is typing in an input field
+            const activeElement = document.activeElement;
+            if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'SELECT' || activeElement.isContentEditable)) {
+                return; // Let the user type normally
+            }
+            
             const tabMap = ['speak', 'act', 'think', 'simulation'];
             const tabIndex = parseInt(e.key) - 1;
             if (tabMap[tabIndex]) {

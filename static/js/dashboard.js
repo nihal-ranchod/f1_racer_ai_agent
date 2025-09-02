@@ -82,9 +82,9 @@ document.getElementById('replyForm').addEventListener('submit', async function(e
     showToast('Analyzing...', 'Analyzing fan comment sentiment and generating reply...', 'info', 2000);
     
     try {
-        const formData = new FormData(this);
+        const fanComment = document.getElementById('fanComment').value;
         const data = {
-            fan_comment: formData.get('fanComment')
+            fan_comment: fanComment
         };
         
         const result = await makeApiRequest('/act/reply', 'POST', data);
@@ -123,9 +123,9 @@ document.getElementById('likeForm').addEventListener('submit', async function(e)
     showToast('Liking...', 'Processing post like action...', 'info', 1000);
     
     try {
-        const formData = new FormData(this);
+        const postContent = document.getElementById('likeContent').value;
         const data = {
-            post_content: formData.get('likeContent')
+            post_content: postContent
         };
         
         const result = await makeApiRequest('/act/like', 'POST', data);
@@ -162,10 +162,11 @@ document.getElementById('mentionForm').addEventListener('submit', async function
     showToast('Creating Mention...', 'Generating contextual mention post...', 'info', 2000);
     
     try {
-        const formData = new FormData(this);
+        const personName = document.getElementById('personName').value;
+        const mentionContext = document.getElementById('mentionContext').value;
         const data = {
-            person_name: formData.get('personName'),
-            context: formData.get('mentionContext')
+            person_name: personName,
+            context: mentionContext
         };
         
         const result = await makeApiRequest('/act/mention', 'POST', data);

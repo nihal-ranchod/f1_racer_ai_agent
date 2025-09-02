@@ -36,7 +36,6 @@ Simulates realistic social media interactions:
 
 1. Clone or download the repository:
 ```bash
-git clone https://github.com/yourusername/f1_racer_ai_agent.git
 cd f1_racer_ai_agent
 ```
 
@@ -94,13 +93,6 @@ python3 run_web.py --host 0.0.0.0
 
 Then open http://localhost:5000 in your browser.
 
-The web interface provides:
-- Clean, professional F1-themed design
-- All CLI functionality in a dashboard format
-- Real-time agent configuration and interaction
-- Responsive design for desktop and mobile
-- Session-based agent management
-
 #### Python Script Usage
 ```python
 from f1_agent import create_f1_agent
@@ -125,6 +117,138 @@ print(context)
 #### Testing Basic Functionality
 ```bash
 python3 test_agent.py
+```
+
+## 🐳 Docker Deployment
+
+The F1 Racer AI Agent is fully containerized for easy deployment and consistent environments.
+
+### Prerequisites
+- Docker and Docker Compose installed
+- 2GB+ available disk space
+- Minimum 1GB RAM
+
+### Quick Start with Docker
+
+#### Option 1: Using Docker Compose (Recommended)
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/f1_racer_ai_agent.git
+cd f1_racer_ai_agent
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your Mistral API key
+
+# Build and run the container
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop the application
+docker-compose down
+```
+
+#### Option 2: Using Docker directly
+```bash
+# Build the image
+docker build -t f1-racer-ai:latest .
+
+# Run the container
+docker run -d \
+  --name f1-racer-ai-agent \
+  -p 5000:5000 \
+  --env-file .env \
+  f1-racer-ai:latest
+
+# View logs
+docker logs -f f1-racer-ai-agent
+
+# Stop the container
+docker stop f1-racer-ai-agent
+docker rm f1-racer-ai-agent
+```
+
+### Docker Configuration
+
+#### Environment Variables
+The container supports the following environment variables:
+- `MISTRAL_API_KEY`: Your Mistral AI API key (required)
+- `FLASK_ENV`: Set to `production` for production deployments
+- `FLASK_RUN_HOST`: Host to bind to (default: 0.0.0.0)
+- `FLASK_RUN_PORT`: Port to run on (default: 5000)
+
+#### Accessing the Application
+Once running, access the web interface at:
+- **Local**: http://localhost:5000
+- **External**: http://your-server-ip:5000
+
+#### Health Monitoring
+The container includes built-in health checks:
+```bash
+# Check container health
+docker ps
+
+# View detailed health status
+docker inspect f1-racer-ai-agent | grep -A 10 "Health"
+```
+
+#### Production Deployment
+For production environments, use the nginx profile:
+```bash
+# Run with nginx reverse proxy
+docker-compose --profile production up -d
+```
+
+### Container Management
+
+#### Updating the Application
+```bash
+# Pull latest changes
+git pull
+
+# Rebuild and restart
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+#### Viewing Logs
+```bash
+# All logs
+docker-compose logs
+
+# Follow logs in real-time
+docker-compose logs -f
+
+# Specific service logs
+docker-compose logs f1-racer-ai
+```
+
+#### Resource Monitoring
+```bash
+# Container resource usage
+docker stats f1-racer-ai-agent
+
+# Disk usage
+docker system df
+```
+
+#### Troubleshooting
+Common issues and solutions:
+
+1. **Container won't start**: Check logs with `docker-compose logs`
+2. **Port conflict**: Change port in docker-compose.yml
+3. **Out of memory**: Increase Docker memory allocation
+4. **API key issues**: Verify .env file is properly configured
+
+```bash
+# Debug container interactively
+docker-compose exec f1-racer-ai /bin/bash
+
+# Check environment variables
+docker-compose exec f1-racer-ai env | grep MISTRAL
 ```
 
 ## 📱 Example Outputs

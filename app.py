@@ -125,7 +125,8 @@ def speak():
         
         data = request.get_json()
         message_type = MessageType(data.get('message_type', 'post'))
-        custom_context = data.get('custom_context', '').strip() or None
+        custom_context = data.get('custom_context') or ''
+        custom_context = custom_context.strip() if custom_context else None
         
         message = agent.speak(message_type, custom_context)
         
@@ -148,7 +149,8 @@ def act_post():
             return jsonify({'success': False, 'error': 'Agent not configured'})
         
         data = request.get_json()
-        custom_content = data.get('content', '').strip() or None
+        custom_content = data.get('content') or ''
+        custom_content = custom_content.strip() if custom_content else None
         
         action = agent.act_post_status(custom_content)
         
@@ -171,7 +173,8 @@ def act_reply():
             return jsonify({'success': False, 'error': 'Agent not configured'})
         
         data = request.get_json()
-        fan_comment = data.get('fan_comment', '').strip()
+        fan_comment = data.get('fan_comment') or ''
+        fan_comment = fan_comment.strip() if fan_comment else ''
         
         if not fan_comment:
             return jsonify({'success': False, 'error': 'No fan comment provided'})
@@ -198,7 +201,8 @@ def act_like():
             return jsonify({'success': False, 'error': 'Agent not configured'})
         
         data = request.get_json()
-        post_content = data.get('post_content', '').strip()
+        post_content = data.get('post_content') or ''
+        post_content = post_content.strip() if post_content else ''
         
         if not post_content:
             return jsonify({'success': False, 'error': 'No post content provided'})
@@ -223,8 +227,10 @@ def act_mention():
             return jsonify({'success': False, 'error': 'Agent not configured'})
         
         data = request.get_json()
-        person_name = data.get('person_name', '').strip()
-        context = data.get('context', 'general').strip()
+        person_name = data.get('person_name') or ''
+        person_name = person_name.strip() if person_name else ''
+        context = data.get('context') or 'general'
+        context = context.strip() if context else 'general'
         
         if not person_name:
             return jsonify({'success': False, 'error': 'No person name provided'})
