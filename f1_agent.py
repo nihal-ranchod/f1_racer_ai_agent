@@ -32,19 +32,15 @@ except ImportError:
 
 # Import F1 data and utilities
 from f1_data import (
-    F1_TEAMS, F1_CIRCUITS, F1_TECHNICAL_TERMS, F1_RADIO_PHRASES,
-    F1_EMOTIONS_CONTEXT, RACE_WEEKEND_SESSIONS, SessionType,
+    F1_TEAMS, F1_CIRCUITS, RACE_WEEKEND_SESSIONS, SessionType,
     get_realistic_session_result, get_circuit_specific_challenges,
-    get_teammate_name, get_team_by_driver, get_random_competitor,
-    Team, Circuit, SessionResult
+    get_teammate_name, SessionResult
 )
 
 # Import NLP and ML libraries
 try:
     import nltk
     from nltk.sentiment import SentimentIntensityAnalyzer
-    from nltk.tokenize import word_tokenize
-    from nltk.corpus import stopwords
     NLTK_AVAILABLE = True
 except ImportError:
     NLTK_AVAILABLE = False
@@ -184,7 +180,6 @@ class F1TextGenerator:
     def generate_with_templates(self, context_prompt: str) -> str:
         """Fallback text generation using templates and F1 data"""
         # Extract key information from prompt
-        mood = self._extract_mood_from_prompt(context_prompt)
         session_type = self._extract_session_from_prompt(context_prompt)
         
         # Generate based on extracted context
@@ -880,12 +875,12 @@ class F1AgentCLI:
         """Display available F1 circuits"""
         if RICH_AVAILABLE:
             rprint("[bold]Available Circuits (showing first 10):[/bold]")
-            for i, (key, circuit) in enumerate(list(F1_CIRCUITS.items())[:10]):
+            for key, circuit in list(F1_CIRCUITS.items())[:10]:
                 rprint(f"[cyan]{key}[/cyan]: {circuit.name} ({circuit.country})")
             rprint("[dim]...and more circuits available[/dim]")
         else:
             print("\nAvailable Circuits (showing first 10):")
-            for i, (key, circuit) in enumerate(list(F1_CIRCUITS.items())[:10]):
+            for key, circuit in list(F1_CIRCUITS.items())[:10]:
                 print(f"{key}: {circuit.name} ({circuit.country})")
             print("...and more circuits available")
     
@@ -1052,7 +1047,7 @@ class F1AgentCLI:
             return
         
         try:
-            action = self.agent.act_like_post(post_content)
+            self.agent.act_like_post(post_content)
             
             if RICH_AVAILABLE:
                 rprint("[green]✅ Post liked successfully![/green]")
@@ -1285,7 +1280,7 @@ class F1AgentCLI:
                 rprint(simulation_panel)
                 
                 # Session results
-                for i, session in enumerate(results["sessions"]):
+                for session in results["sessions"]:
                     rprint(f"[cyan]{session['day']} - {session['session'].title()}:[/cyan]")
                     rprint(f"  Position: P{session['result']['position']}")
                     rprint(f"  Best Time: {session['result']['best_time']}")
