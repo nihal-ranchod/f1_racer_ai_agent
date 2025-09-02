@@ -137,15 +137,7 @@ function showTab(tabName) {
         }, 10);
     }
     
-    // Show appropriate toast message
-    const tabTitles = {
-        'speak': 'Generate Messages',
-        'act': 'Social Media Actions', 
-        'think': 'Context & Analysis',
-        'simulation': 'Race Weekend Simulation'
-    };
-    
-    showToast('Tab Changed', `Switched to ${tabTitles[tabName]}`, 'info', 2000);
+    // Tab switching is a minor UI action - no toast needed
 }
 
 // Load circuit and team data on page load
@@ -290,6 +282,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Show welcome message
-    showToast('Welcome!', 'F1 AI Agent interface loaded successfully. Use keyboard shortcuts: 1-4 for tabs, Ctrl+Enter to submit forms.', 'success', 3000);
+    // Interface loaded - no toast needed for basic initialization
 });

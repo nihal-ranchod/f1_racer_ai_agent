@@ -31,22 +31,22 @@ from f1_data import F1_TEAMS, F1_CIRCUITS, RACE_WEEKEND_SESSIONS
 app = Flask(__name__)
 app.secret_key = 'f1-racer-ai-agent-2025'
 
-# Store agents by session ID
+# Global agent storage - maintains separate agent instances per user session
 agents: Dict[str, F1Agent] = {}
 
 def get_session_id() -> str:
-    """Get or create session ID"""
+    """Get or create unique session ID for user isolation"""
     if 'session_id' not in session:
         session['session_id'] = str(uuid.uuid4())
     return session['session_id']
 
 def get_agent() -> Optional[F1Agent]:
-    """Get agent for current session"""
+    """Retrieve F1 agent instance for current user session"""
     session_id = get_session_id()
     return agents.get(session_id)
 
 def set_agent(agent: F1Agent) -> None:
-    """Set agent for current session"""
+    """Store F1 agent instance for current user session"""
     session_id = get_session_id()
     agents[session_id] = agent
 
@@ -66,7 +66,7 @@ def index():
 
 @app.route('/configure', methods=['POST'])
 def configure_agent():
-    """Configure the F1 Agent"""
+    """Initialize F1 agent with user-specified driver and team configuration"""
     try:
         data = request.get_json()
         driver_name = data.get('driver_name', 'Alex Driver')
@@ -74,17 +74,18 @@ def configure_agent():
         circuit_key = data.get('circuit_key', 'silverstone')
         weekend_type = data.get('weekend_type', 'standard_weekend')
         
-        # Validate inputs
+        # Validate team selection against available F1 teams
         if team_key not in F1_TEAMS:
             return jsonify({'success': False, 'error': f'Invalid team: {team_key}'})
         
+        # Fallback to Silverstone for invalid circuit selections
         if circuit_key not in F1_CIRCUITS:
             circuit_key = 'silverstone'
         
-        # Create agent
+        # Initialize agent with specified configuration
         agent = create_f1_agent(driver_name, team_key)
         
-        # Set initial context
+        # Configure initial race weekend context
         agent.think_update_context(
             current_circuit=circuit_key,
             weekend_type=weekend_type,
@@ -117,7 +118,7 @@ def dashboard():
 
 @app.route('/speak', methods=['POST'])
 def speak():
-    """Generate message (Speak capability)"""
+    """Generate F1-style social media message using agent's Speak capability"""
     try:
         agent = get_agent()
         if not agent:
@@ -125,9 +126,11 @@ def speak():
         
         data = request.get_json()
         message_type = MessageType(data.get('message_type', 'post'))
+        # Clean and prepare custom context for message generation
         custom_context = data.get('custom_context') or ''
         custom_context = custom_context.strip() if custom_context else None
         
+        # Generate contextualized F1 message
         message = agent.speak(message_type, custom_context)
         
         return jsonify({
@@ -268,7 +271,7 @@ def think_context():
 
 @app.route('/think/update', methods=['POST'])
 def think_update():
-    """Update context (Think capability)"""
+    """Update agent context state using Think capability"""
     try:
         agent = get_agent()
         if not agent:
@@ -277,7 +280,7 @@ def think_update():
         data = request.get_json()
         updates = {}
         
-        # Process updates
+        # Validate and process context updates
         if data.get('circuit') and data['circuit'] in F1_CIRCUITS:
             updates['current_circuit'] = data['circuit']
         
@@ -285,18 +288,19 @@ def think_update():
             try:
                 updates['current_session'] = SessionType(data['session'])
             except ValueError:
-                pass
+                pass  # Ignore invalid session types
         
+        # Validate mood against allowed emotional states
         if data.get('mood') and data['mood'] in ['ecstatic', 'satisfied', 'neutral', 'disappointed', 'frustrated']:
             updates['mood'] = data['mood']
         
         if updates:
             success = agent.think_update_context(**updates)
             if success:
-                # Convert enum objects to their values for JSON serialization
+                # Prepare enum objects for JSON serialization
                 serializable_updates = {}
                 for key, value in updates.items():
-                    if hasattr(value, 'value'):  # Handle enum objects
+                    if hasattr(value, 'value'):  # Convert enums to string values
                         serializable_updates[key] = value.value
                     else:
                         serializable_updates[key] = value
@@ -311,7 +315,7 @@ def think_update():
 
 @app.route('/simulation', methods=['POST'])
 def run_simulation():
-    """Run race weekend simulation"""
+    """Execute complete race weekend simulation with session-by-session results"""
     try:
         agent = get_agent()
         if not agent:
@@ -321,9 +325,11 @@ def run_simulation():
         circuit_key = data.get('circuit_key', agent.context.current_circuit)
         weekend_type = data.get('weekend_type', 'standard_weekend')
         
+        # Validate circuit selection, fallback to current circuit
         if circuit_key not in F1_CIRCUITS:
             circuit_key = agent.context.current_circuit
         
+        # Run comprehensive weekend simulation
         results = agent.run_race_weekend_simulation(circuit_key, weekend_type)
         
         return jsonify({

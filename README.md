@@ -1,520 +1,255 @@
-# 🏎️ F1 Racer AI Agent
+# F1 Racer AI Agent
 
-An intelligent AI agent that mimics the persona and behavior of a Formula One racer, designed for authentic social media interactions and race weekend simulations.
+An intelligent Formula 1 driver persona that simulates authentic F1 driver behaviour across social media interactions and race weekend scenarios. The agent combines real F1 data, natural language processing, and contextual awareness to generate realistic driver responses, social media posts, and race weekend narratives.
 
-## 🎯 Agent Capabilities
+## Agent Capabilities
 
-The F1 Racer AI Agent implements three core capabilities inspired by F1 driver behavior:
+The F1 Racer AI Agent features three core capabilities inspired by authentic F1 driver behaviour:
 
-### 🎤 **Speak** (Generate Text)
-- Generates authentic F1 racer-style messages and social media posts
-- Uses F1-specific terminology, emotions, and context
-- Adapts language based on race results, circuit characteristics, and current mood
-- Integrates with Mistral LLM for advanced text generation with template fallback
+### **SPEAK** - Message Generation
+- Generate authentic F1-style social media posts and messages
+- Context-aware responses based on race weekend phase, circuit, and performance
+- Multiple message types: posts, replies, status updates, mentions
+- Integration with LLM (Mistral API) for enhanced text generation with template fallback
 
-### 🎬 **Act** (Perform Actions)
-Simulates realistic social media interactions:
-- **Post Status Update**: Create race weekend updates and announcements
-- **Reply to Fan Comments**: Respond to fan interactions with contextual awareness
-- **Like Posts**: Engage with content from other drivers, teams, or fans
-- **Mention Someone**: Tag teammates, competitors, or team personnel in posts
+### **ACT** - Social Media Actions
+- **Post Status Updates**: Share race weekend updates and general content
+- **Reply to Fan Comments**: Contextual responses with sentiment analysis
+- **Like Posts**: Engage with other content
+- **Mention Others**: Tag teammates, competitors, or personalities
+- Realistic engagement metrics and interaction tracking
 
-### 🧠 **Think** (Contextual Awareness)
-- Maintains comprehensive race weekend context (practice, qualifying, race)
-- Tracks driver performance, mood, and recent incidents
-- Adapts responses based on circuit characteristics and session results
-- Manages championship position and team dynamics
+### **THINK** - Contextual Awareness
+- Dynamic context management throughout race weekends
+- Circuit-specific challenges and characteristics
+- Mood adaptation based on performance and results
+- Championship position and team dynamics awareness
+- Complete race weekend simulation with session-by-session progression
 
-## 🚀 Quick Start
+## Setup & Installation
 
 ### Prerequisites
+- Python 3.11 or higher
+- Git
 
-1. **Python 3.8+** is required
-2. **Mistral API key** from [Mistral AI](https://mistral.ai/)
+### Option 1: CLI Version
 
-### Installation
-
-1. Clone or download the repository:
+1. **Clone and Setup**
 ```bash
+git clone <repository-url>
 cd f1_racer_ai_agent
-```
-
-2. Install dependencies:
-```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-3. Set up environment variables:
+2. **Configure Environment (Optional)**
 ```bash
-# Copy the example file
 cp .env.example .env
-
-# Edit .env with your Mistral API key
-MISTRAL_API_KEY=your_mistral_api_key_here
+# Edit .env file to add your Mistral API key for enhanced text generation:
+# MISTRAL_API_KEY=your_mistral_api_key_here
 ```
 
-### Running the Agent
-
-#### Interactive CLI Mode
+3. **Run CLI Interface**
 ```bash
-python3 f1_agent.py
+python f1_agent.py
 ```
 
-The CLI provides an intuitive interface with the following menu:
-```
---- Agent Capabilities ---
-1. Generate Message (Speak)
-2. Post Status Update (Act)
-3. Reply to Fan Comment (Act)
-4. Like a Post (Act)
-5. Mention Someone (Act)
-6. Show Current Context (Think)
-7. Update Context (Think)
-8. Run Race Weekend Simulation
-9. Exit
-```
+### Option 2: Web Application
 
-#### Web Interface (Recommended)
-For a more user-friendly experience, use the professional web interface:
+1. **Complete CLI setup steps above**
 
+2. **Launch Web Interface**
 ```bash
-# Simple start
-python3 run_web.py
-
-# Custom port
-python3 run_web.py --port 8080
-
-# Debug mode
-python3 run_web.py --debug
-
-# Accept external connections
-python3 run_web.py --host 0.0.0.0
+python run_web.py
+# Or with custom settings:
+python run_web.py --host 0.0.0.0 --port 8080 --debug
 ```
 
-Then open http://localhost:5000 in your browser.
+3. **Access Web Interface**
+   - Open browser to `http://localhost:5000`
+   - Follow the web configuration guide below
 
-#### Python Script Usage
-```python
-from f1_agent import create_f1_agent
-from f1_data import F1_TEAMS
+### Option 3: Docker Container
 
-# Create agent
-agent = create_f1_agent("Lewis Hamilton", "ferrari")
-
-# Generate a message
-message = agent.speak()
-print(message)
-
-# Simulate posting a status
-action = agent.act_post_status()
-print(f"Posted: {action.content}")
-
-# Show current context
-context = agent.think_show_context()
-print(context)
-```
-
-#### Testing Basic Functionality
+1. **Using Docker Compose (Recommended)**
 ```bash
-python3 test_agent.py
-```
-
-## 🐳 Docker Deployment
-
-The F1 Racer AI Agent is fully containerized for easy deployment and consistent environments.
-
-### Prerequisites
-- Docker and Docker Compose installed
-- 2GB+ available disk space
-- Minimum 1GB RAM
-
-### Quick Start with Docker
-
-#### Option 1: Using Docker Compose (Recommended)
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/f1_racer_ai_agent.git
+# Clone repository and navigate to directory
+git clone <repository-url>
 cd f1_racer_ai_agent
 
-# Set up environment variables
+# Copy environment file and configure (optional)
 cp .env.example .env
-# Edit .env with your Mistral API key
+# Edit .env to add your Mistral API key
 
-# Build and run the container
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop the application
-docker-compose down
+# Build and run
+docker-compose up --build
 ```
 
-#### Option 2: Using Docker directly
+2. **Using Docker directly**
 ```bash
-# Build the image
-docker build -t f1-racer-ai:latest .
+# Build image
+docker build -t f1-racer-ai .
 
-# Run the container
-docker run -d \
-  --name f1-racer-ai-agent \
-  -p 5000:5000 \
-  --env-file .env \
-  f1-racer-ai:latest
-
-# View logs
-docker logs -f f1-racer-ai-agent
-
-# Stop the container
-docker stop f1-racer-ai-agent
-docker rm f1-racer-ai-agent
+# Run container
+docker run -p 5000:5000 --env-file .env f1-racer-ai
 ```
 
-### Docker Configuration
+3. **Access the application at `http://localhost:5000`**
 
-#### Environment Variables
-The container supports the following environment variables:
-- `MISTRAL_API_KEY`: Your Mistral AI API key (required)
-- `FLASK_ENV`: Set to `production` for production deployments
-- `FLASK_RUN_HOST`: Host to bind to (default: 0.0.0.0)
-- `FLASK_RUN_PORT`: Port to run on (default: 5000)
+## Web Application User Guide
 
-#### Accessing the Application
-Once running, access the web interface at:
-- **Local**: http://localhost:5000
-- **External**: http://your-server-ip:5000
+### Step 1: Agent Configuration
+When you first access the web interface, you'll see the configuration page:
 
-#### Health Monitoring
-The container includes built-in health checks:
-```bash
-# Check container health
-docker ps
+1. **Driver Name**: Enter your F1 driver name (e.g., "Lewis Hamilton", "Max Verstappen")
+2. **Team Selection**: Choose from all current F1 teams:
+   - Red Bull Racing, Ferrari, Mercedes, McLaren
+   - Aston Martin, Alpine, Williams, Racing Bulls, Haas
+3. **Initial Circuit**: Select starting circuit (default: Silverstone)
+4. **Weekend Type**: Choose between:
+   - **Standard Weekend**: FP1, FP2, FP3, Qualifying, Race
+   - **Sprint Weekend**: FP1, Sprint Shootout, Sprint Race, Qualifying, Race
 
-# View detailed health status
-docker inspect f1-racer-ai-agent | grep -A 10 "Health"
-```
+### Step 2: Using the Dashboard
 
-#### Production Deployment
-For production environments, use the nginx profile:
-```bash
-# Run with nginx reverse proxy
-docker-compose --profile production up -d
-```
+After configuration, you'll access the main dashboard with these sections:
 
-### Container Management
+#### **SPEAK - Message Generation**
+- **Message Type**: Select post type (post, reply, status_update, mention)
+- **Custom Context**: Add specific context (e.g., "after qualifying P3", "celebrating podium finish")
+- Generates authentic F1-style messages based on current context
 
-#### Updating the Application
-```bash
-# Pull latest changes
-git pull
+#### **ACT - Social Media Actions**
+- **Post Status**: Create social media posts with engagement metrics
+- **Reply to Comments**: Respond to fan comments with sentiment analysis
+- **Like Posts**: Simulate liking other posts
+- **Mention Someone**: Create posts mentioning other drivers or personalities
 
-# Rebuild and restart
-docker-compose down
-docker-compose build --no-cache
-docker-compose up -d
-```
+#### **THINK - Context Management**
+- **View Context**: See current driver info, circuit, session, mood, and recent activity
+- **Update Context**: Modify:
+  - **Circuit**: Change current racing location
+  - **Session**: Set current session (fp1, fp2, fp3, qualifying, race)
+  - **Mood**: Adjust emotional state (ecstatic, satisfied, neutral, disappointed, frustrated)
 
-#### Viewing Logs
-```bash
-# All logs
-docker-compose logs
+#### **Race Weekend Simulation**
+- **Circuit Selection**: Choose any F1 circuit for simulation
+- **Weekend Type**: Standard or Sprint weekend format
+- Runs complete weekend with realistic results and generated messages
 
-# Follow logs in real-time
-docker-compose logs -f
+### Context Fields Explained
 
-# Specific service logs
-docker-compose logs f1-racer-ai
-```
+| Field | Description | Impact on Agent |
+|-------|-------------|----------------|
+| **Driver Name** | The F1 driver being simulated | Affects teammate identification and team context |
+| **Team** | Current F1 team | Influences car performance expectations and team culture |
+| **Circuit** | Current racing circuit | Determines circuit-specific challenges and characteristics |
+| **Session** | Current F1 session type | Affects message tone and content focus |
+| **Mood** | Emotional state | Influences message sentiment and response style |
+| **Championship Position** | Current standings | Affects confidence level and expectations |
+| **Recent Incidents** | Recent racing events | Provides context for current challenges |
 
-#### Resource Monitoring
-```bash
-# Container resource usage
-docker stats f1-racer-ai-agent
-
-# Disk usage
-docker system df
-```
-
-#### Troubleshooting
-Common issues and solutions:
-
-1. **Container won't start**: Check logs with `docker-compose logs`
-2. **Port conflict**: Change port in docker-compose.yml
-3. **Out of memory**: Increase Docker memory allocation
-4. **API key issues**: Verify .env file is properly configured
-
-```bash
-# Debug container interactively
-docker-compose exec f1-racer-ai /bin/bash
-
-# Check environment variables
-docker-compose exec f1-racer-ai env | grep MISTRAL
-```
-
-## 📱 Example Outputs
+## Example Agent Outputs
 
 ### After a Victory
-**Context**: P1 finish at Silverstone
 ```
-"YES! What a race! Huge thanks to the team for the amazing car. We pushed hard and it paid off. #Winner #TeamWork #SilverstoneCircuit"
-```
-
-### During Practice Session
-**Context**: FP2 at Monaco, good session
-```
-"Getting some good laps in during FP2. Feeling comfortable with the car setup. Let's keep pushing! #FP2 #CircuitDeMonaco #Practice"
+"Silverstone, you absolute *beauty*—high-speed, flat-out, and that final lap? Pure magic. The team nailed it, the MCL60 was a *rocket* through Maggots & Becketts, and that slipstream duel? *Chef’s kiss.* P6 in the championship? Not for long. 😉 This one’s for the orange army. **LET’S GO!** #LND #ForTheFans #BritishGP 🧡"
 ```
 
 ### After a Difficult Race
-**Context**: P15 finish due to mechanical issues
 ```
-"Not the result we wanted today. Gave it my all out there, but things didn't go our way. We'll analyze and come back stronger. #NeverGiveUp #TeamSpirit"
-```
-
-### Replying to Fan Comment
-**Fan**: "Great drive today, Lewis!"
-**Agent Reply**: 
-```
-"Thanks for the support! Every cheer makes a difference. The fans are incredible here! 🙌"
+"Tough one at home today. Silverstone didn’t play to our strengths—struggled with aero efficiency in the high-speed stuff and got caught out in the slipstream battles. Not the points we wanted, but we’ll dig deep. P10 in the championship isn’t where we belong. Thanks for the support—we’ll come  back stronger. 🧡 #Lando #McLaren #BritishGP #NeverGiveUp"
 ```
 
-### Race Weekend Simulation Example
+### During Practice
 ```
-🏁 Weekend Simulation: Silverstone Circuit - Standard Weekend
-============================================================
-
-Friday - FP1:
-  Position: P4
-  Best Time: 1:24.567
-  Message: 'Solid running in FP1. Learning the track surface and finding our baseline setup. #FP1 #SilverstoneCircuit'
-
-Friday - FP2:
-  Position: P2
-  Best Time: 1:23.234
-  Message: 'Great pace in FP2! The car balance is coming together nicely. Team did fantastic work! #FP2 #SilverstoneCircuit'
-
-Saturday - FP3:
-  Position: P3
-  Best Time: 1:22.890
-  Message: 'Final practice done. Good preparation for qualifying. Ready to fight for pole! #FP3 #SilverstoneCircuit'
-
-Saturday - Qualifying:
-  Position: P2
-  Best Time: 1:21.456
-  Message: 'P2 on the grid! Gave everything in Q3. Great team effort to get us there! #Qualifying #SilverstoneCircuit'
-
-Sunday - Race:
-  Position: P1
-  Best Time: 1:22.123
-  Message: 'INCREDIBLE! P1! This feeling never gets old. Massive effort from everyone in the garage. #Victory #SilverstoneCircuit'
-
-🏆 Weekend Summary: Fantastic weekend! P1 finish! 🏆
+FP3 done at this absolute beast of a track! 🏎️💨 Silverstone’s high-speed flow is next level—nailed some solid laps but still chasing that last bit of aero balance through Maggots & Beckets. Slipstream battles tomorrow? Bring it. 🇬🇧 #HomeOfF1 #McLaren #P10ButHungry #FP3 
 ```
 
-## 🏗️ Architecture & Design Choices
+### Fan Interaction Example
+**Fan Comment**: "Great qualifying session! P2 is amazing!"
+**Agent Reply**: "Cheers, mate! P2 feels good—especially here at Silverstone. The car’s hooked up, and the crowd’s energy is next level. Let’s keep pushing! 💨🏆#L4NDO #McLaren #BritishGP #SilverstoneCircuit #FP3"
 
-### Hybrid Approach Implementation
-The agent uses a sophisticated hybrid approach combining multiple technologies:
+## Design Choices & Architecture
 
-**🤖 Language Model Integration**
-- **Primary**: Mistral LLM via API for contextual, dynamic text generation
+### Core Design Principles
+
+1. **Authenticity First**: Every aspect built on real F1 data, terminology, and driver behaviour patterns
+2. **Modular Architecture**: Separate modules for agent logic, F1 data, and web interface
+3. **Graceful Degradation**: System works even when external dependencies are unavailable
+4. **Context-Aware Responses**: Agent behaviour adapts dynamically based on race weekend phase and performance
+
+### Key Technical Decisions
+
+- **Enum-Based State Management**: Used Python enums for session types and context states for type safety
+- **Dataclass Integration**: Leveraged dataclasses for clean data structures and JSON serialization
+- **Multi-Interface Support**: Both CLI and web interfaces share the same core agent logic
+- **Docker-First Deployment**: Optimized for containerized deployment with security best practices
+
+### Data Architecture
+
+- **F1 Teams & Drivers**: Complete 2025 season data with realistic driver lineups
+- **Circuit Database**: 24 circuits with authentic characteristics, lap records, and technical details
+- **Session Results**: Probabilistic result generation based on team performance tiers
+- **Sentiment Analysis**: NLTK VADER sentiment analysis for contextual fan interactions
+
+### Text Generation Strategy
+
+- **Primary**: Mistral LLM API integration for advanced, contextual text generation
 - **Fallback**: Template-based generation using F1-specific patterns and vocabulary
-- **Graceful Degradation**: Automatically switches to templates if LLM is unavailable
+- **Context Building**: Detailed prompts incorporating circuit info, session data, and emotional state
+- **Response Cleaning**: Automatic filtering of LLM metadata to extract clean social media content
 
-**📊 NLP Libraries Integration**
-- **NLTK**: Sentiment analysis for fan comment responses and mood tracking
-- **Pattern Matching**: Context extraction and F1 terminology integration
-- **Text Enhancement**: Automatic hashtag and mention generation
+## Challenges Encountered & Solutions
 
-### Context Management System
-```python
-@dataclass
-class AgentContext:
-    driver_name: str
-    team: str
-    current_circuit: str
-    current_session: Optional[SessionType]
-    current_state: ContextState
-    last_result: Optional[SessionResult]
-    mood: str
-    recent_incidents: List[str]
-    championship_position: int
-```
+### 1. **NLTK Data Management in Docker**
+**Challenge**: NLTK requires data downloads that can fail in containerized environments
+**Solution**: Pre-download NLTK data during Docker build process and set custom data paths with proper user permissions
 
-The context system maintains:
-- **Driver Identity**: Name, team affiliation, teammate relationships
-- **Race Weekend State**: Current session, circuit, performance results
-- **Emotional Context**: Mood based on recent performance and incidents
-- **Historical Tracking**: Recent actions, conversation memory, performance trends
+### 2. **LLM API Integration & Reliability**
+**Challenge**: Dependence on external APIs can cause failures and inconsistent responses
+**Solution**: Implemented robust fallback system using template-based generation when LLM APIs are unavailable, with intelligent response cleaning
 
-### F1 Data Integration
-Comprehensive F1 database includes:
-- **Teams & Drivers**: 2025 season lineup with accurate team information
-- **Circuits**: 24 race calendar with detailed circuit characteristics
-- **Technical Terms**: Racing vocabulary and radio phrases
-- **Session Structure**: Realistic weekend formats (standard and sprint weekends)
+### 3. **Multi-User Session Management**
+**Challenge**: Web interface needs to maintain separate agent instances per user
+**Solution**: UUID-based session management with isolated agent storage per session
 
-## 🎮 Features
+### 4. **Realistic F1 Behaviour Simulation**
+**Challenge**: Generating authentic F1 driver responses across different scenarios and contexts
+**Solution**: Comprehensive F1 data integration with context-aware message generation, mood-based response adaptation, and circuit-specific challenge mapping
 
-### Advanced Text Generation
-- **Context-Aware Prompts**: Builds detailed prompts with circuit info, session data, and emotional state
-- **F1 Terminology**: Natural integration of racing terms, team references, and technical language
-- **Emotional Adaptation**: Adjusts tone and sentiment based on performance and context
-- **Character Limits**: Respects social media constraints (280 characters)
+### 5. **Production Deployment & Security**
+**Challenge**: Balancing functionality with security and performance in containerized deployment
+**Solution**: Multi-stage Docker build, non-root user execution, health checks, optimized dependency management, and comprehensive error handling
 
-### Realistic Simulations
-- **Performance Modeling**: Team-based performance categories (top team, midfield, backmarker)
-- **Session Results**: Realistic lap times, positions, and incident generation
-- **Circuit-Specific**: Adapts to track characteristics and challenges
-- **Weekend Progression**: Maintains continuity across practice, qualifying, and race
+### 6. **Context Continuity**
+**Challenge**: Maintaining realistic context progression throughout race weekends
+**Solution**: Dynamic context updates with automatic mood adjustment based on performance, incident tracking, and session-to-session continuity
 
-### Social Media Interactions
-- **Sentiment Analysis**: Analyzes fan comments and generates appropriate responses
-- **Engagement Tracking**: Simulates realistic social media metrics
-- **Mention Handling**: Natural integration of @ mentions and hashtags
-- **Content Variety**: Different message types for various social media scenarios
+## Technical Stack
 
-## 🛠️ Technical Implementation
+- **Core Language**: Python 3.11
+- **Web Framework**: Flask with session management
+- **NLP**: NLTK with VADER sentiment analysis
+- **LLM Integration**: Mistral API with requests library
+- **UI Enhancement**: Rich library for CLI experience
+- **Containerization**: Docker with multi-stage builds and security hardening
+- **Data Management**: Python dataclasses, enums, and JSON serialization
 
-### File Structure
+## Project Structure
 ```
 f1_racer_ai_agent/
 ├── f1_agent.py          # Core agent implementation with CLI
-├── f1_data.py           # F1 data and utilities
+├── f1_data.py           # F1 data structures and utilities
 ├── app.py               # Flask web application
 ├── run_web.py           # Web interface launcher
+├── test_agent.py        # Comprehensive test suite
 ├── templates/           # HTML templates for web interface
-├── static/              # CSS and JavaScript for web interface
-├── test_agent.py        # Testing script
+├── static/              # CSS and JavaScript assets
 ├── requirements.txt     # Python dependencies
-├── .env                 # Environment variables (your API key)
+├── Dockerfile           # Multi-stage container configuration
+├── docker-compose.yml   # Container orchestration
 ├── .env.example         # Environment variables template
-└── README.md           # Documentation
+└── README.md           # This documentation
 ```
-
-### Key Classes
-- **`F1Agent`**: Main agent with Speak/Act/Think capabilities
-- **`F1TextGenerator`**: Handles LLM integration and text generation
-- **`AgentContext`**: Maintains race weekend and driver context
-- **`F1AgentCLI`**: Interactive command-line interface
-
-### Dependencies
-- **Core ML/NLP**: `transformers`, `torch`, `nltk`, `spacy`
-- **LLM Integration**: `requests` (for Mistral API)
-- **CLI Enhancement**: `rich`, `click`, `colorama`
-- **Data Processing**: `numpy`, `pandas`, `python-dateutil`
-- **Environment**: `python-dotenv`
-
-## 🎛️ Configuration Options
-
-### Driver & Team Selection
-Configure any driver-team combination:
-```python
-# Available teams (2025 season)
-teams = {
-    "red_bull": "Red Bull Racing",
-    "ferrari": "Scuderia Ferrari", 
-    "mercedes": "Mercedes-AMG Petronas F1 Team",
-    "mclaren": "McLaren F1 Team",
-    "aston_martin": "Aston Martin Aramco Cognizant F1 Team",
-    "alpine": "BWT Alpine F1 Team",
-    "williams": "Williams Racing",
-    "racing_bulls": "Racing Bulls",
-    "haas": "MoneyGram Haas F1 Team"
-}
-```
-
-### Context Customization
-```python
-# Update agent context
-agent.think_update_context(
-    current_circuit="monaco",
-    current_session=SessionType.QUALIFYING,
-    mood="confident",
-    championship_position=3
-)
-```
-
-### Environment Variables
-```bash
-# Mistral API Configuration
-MISTRAL_API_KEY=your_mistral_api_key_here
-MISTRAL_MODEL=mistral-large-latest
-MISTRAL_BASE_URL=https://api.mistral.ai/v1
-
-# Agent Configuration
-DEFAULT_DRIVER=Alex Driver
-DEFAULT_TEAM=mclaren
-DEFAULT_CIRCUIT=silverstone
-
-# CLI Configuration
-ENABLE_RICH_CLI=true
-DEBUG_MODE=false
-```
-
-## 🏆 Design Philosophy & Challenges
-
-### Design Choices
-
-**1. Mistral API Integration**
-- **Rationale**: Provides high-quality, contextual text generation for authentic F1 content
-- **Implementation**: Direct API integration with comprehensive error handling
-- **Benefits**: Advanced natural language understanding and F1 persona accuracy
-
-**2. Rich Context Management**
-- **Challenge**: Maintaining realistic F1 context across interactions
-- **Solution**: Comprehensive context dataclass with automatic updates
-- **Result**: Authentic responses that adapt to race weekend progression
-
-**3. Modular Architecture**
-- **Design**: Separated concerns (agent logic, data, CLI, text generation)
-- **Benefits**: Easy testing, maintenance, and extensibility
-- **Future-Proof**: Can easily add new capabilities or data sources
-
-**4. CLI-First Approach**
-- **Philosophy**: Interactive experience over programmatic usage
-- **Implementation**: Rich terminal interface with fallback to basic CLI
-- **User Experience**: Intuitive menu system matching the specified structure
-
-### Challenges Encountered
-
-**1. F1 Authenticity**
-- **Challenge**: Generating messages that sound authentically F1
-- **Solution**: Extensive F1 data integration and context-aware prompts
-- **Result**: Messages that include proper terminology, emotions, and references
-
-**2. Context Continuity**
-- **Challenge**: Maintaining context across different agent interactions
-- **Solution**: Persistent context state with automatic updates
-- **Result**: Coherent personality that remembers recent events and adapts accordingly
-
-**3. API Reliability**
-- **Challenge**: Mistral API availability and response consistency
-- **Solution**: Template-based fallback system with graceful degradation
-- **Result**: Consistent user experience regardless of API status
-
-**4. Social Media Simulation**
-- **Challenge**: Realistic social media interaction patterns
-- **Solution**: Sentiment analysis, engagement metrics, and contextual responses
-- **Result**: Believable social media behavior simulation
-
-## 🔮 Future Enhancements
-
-- **Multi-Language Support**: Generate content in multiple languages for international F1 audience
-- **Historical Data Integration**: Include past race results and career statistics
-- **Advanced Sentiment Analysis**: More sophisticated emotion detection and response
-- **Real-Time F1 Data**: Integration with live F1 timing and results
-- **Voice Generation**: Text-to-speech for more immersive interactions
-- **Image Generation**: Create race-related visual content
-
-## 📜 License & Usage
-
-This project is created for educational and assessment purposes. The F1 data is based on publicly available information and is used for simulation purposes only.
-
-## 🤝 Contributing
-
-This is an assessment project, but suggestions and improvements are welcome through issues and pull requests.
-
----
-
-**🏁 Ready to race? Start your engines with `python3 f1_agent.py`!**

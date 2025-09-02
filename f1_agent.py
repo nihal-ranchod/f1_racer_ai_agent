@@ -126,44 +126,68 @@ class F1TextGenerator:
         self.initialize_nltk()
         
     def initialize_nltk(self):
-        """Initialize NLTK components"""
+        """Initialize NLTK sentiment analyzer with Docker/production compatibility"""
         if NLTK_AVAILABLE:
             try:
+                # Configure NLTK data path for Docker environments
+                import nltk.data
+                nltk_data_path = os.environ.get('NLTK_DATA', None)
+                if nltk_data_path and os.path.exists(nltk_data_path):
+                    nltk.data.path.insert(0, nltk_data_path)
+                
+                # Verify required NLTK data packages are available
                 nltk.data.find('vader_lexicon')
                 nltk.data.find('punkt')
                 nltk.data.find('stopwords')
                 self.sentiment_analyzer = SentimentIntensityAnalyzer()
+                print("NLTK initialized successfully with pre-installed data")
             except LookupError:
-                print("Downloading required NLTK data...")
-                nltk.download('vader_lexicon', quiet=True)
-                nltk.download('punkt', quiet=True) 
-                nltk.download('stopwords', quiet=True)
-                self.sentiment_analyzer = SentimentIntensityAnalyzer()
+                # Handle missing NLTK data based on environment
+                is_docker = os.path.exists('/.dockerenv') or os.environ.get('DOCKER_CONTAINER', False)
+                
+                if is_docker:
+                    # Production/Docker: Don't download at runtime
+                    print("NLTK data not found in Docker container. Sentiment analysis disabled.")
+                    print("Make sure NLTK data is pre-installed in the Docker image.")
+                    self.sentiment_analyzer = None
+                else:
+                    # Development: Attempt to download required data
+                    try:
+                        print("Downloading required NLTK data...")
+                        nltk.download('vader_lexicon', quiet=True)
+                        nltk.download('punkt', quiet=True) 
+                        nltk.download('stopwords', quiet=True)
+                        self.sentiment_analyzer = SentimentIntensityAnalyzer()
+                    except (PermissionError, OSError) as e:
+                        print(f"Cannot download NLTK data: {e}")
+                        print("Using fallback sentiment analysis...")
+                        self.sentiment_analyzer = None
+            except Exception as e:
+                print(f"Error initializing NLTK: {e}")
+                print("Sentiment analysis will be unavailable")
+                self.sentiment_analyzer = None
     
-    def generate_with_llm(self, prompt: str, max_tokens: int = 150) -> str:
-        """Generate text using Mistral API"""
+    def generate_with_llm(self, prompt: str, agent_context=None, max_tokens: int = 150) -> str:
+        """Generate text using Mistral API with fallback to template-based generation"""
         api_key = os.getenv('MISTRAL_API_KEY')
         if not api_key or not REQUESTS_AVAILABLE:
-            return self.generate_with_templates(prompt)
+            return self.generate_with_templates(prompt, agent_context)
             
         try:
+            # Configure Mistral API request
             url = os.getenv('MISTRAL_BASE_URL', 'https://api.mistral.ai/v1') + '/chat/completions'
             headers = {
                 'Authorization': f'Bearer {api_key}',
                 'Content-Type': 'application/json'
             }
             
+            # API request payload with F1-optimized parameters
             data = {
                 'model': os.getenv('MISTRAL_MODEL', 'mistral-large-latest'),
-                'messages': [
-                    {
-                        'role': 'user',
-                        'content': prompt
-                    }
-                ],
-                'max_tokens': 100,  # Reduced for faster response
-                'temperature': 0.7,  # Slightly less random for speed
-                'top_p': 0.8
+                'messages': [{'role': 'user', 'content': prompt}],
+                'max_tokens': 200,    # Sufficient for social media posts
+                'temperature': 0.7,   # Balanced creativity for authentic F1 voice
+                'top_p': 0.8         # Focus on most probable responses
             }
             
             response = requests.post(url, headers=headers, json=data, timeout=10)
@@ -172,64 +196,80 @@ class F1TextGenerator:
             result = response.json()
             raw_content = result['choices'][0]['message']['content'].strip()
             
-            # Clean up the response - extract only the actual message
+            # Extract clean message content from LLM response
             return self._clean_llm_response(raw_content)
             
         except Exception as e:
+            # Silent fallback in production, debug info in development
             if os.getenv('DEBUG_MODE', 'false').lower() == 'true':
                 print(f"Mistral API failed: {e}")
-            return self.generate_with_templates(prompt)
+            return self.generate_with_templates(prompt, agent_context)
     
-    def generate_with_templates(self, context_prompt: str) -> str:
+    def generate_with_templates(self, context_prompt: str, agent_context=None) -> str:
         """Fallback text generation using templates and F1 data"""
         # Extract key information from prompt
         session_type = self._extract_session_from_prompt(context_prompt)
         
         # Generate based on extracted context
-        if "victory" in context_prompt.lower() or "win" in context_prompt.lower():
-            return self._generate_victory_message()
-        elif "podium" in context_prompt.lower():
-            return self._generate_podium_message()
-        elif "difficult" in context_prompt.lower() or "bad" in context_prompt.lower():
-            return self._generate_difficult_message()
+        lower_prompt = context_prompt.lower()
+        if "victory" in lower_prompt or "win" in lower_prompt or "after a win" in lower_prompt:
+            return self._generate_victory_message(agent_context)
+        elif "podium" in lower_prompt:
+            return self._generate_podium_message(agent_context)
+        elif "difficult" in lower_prompt or "bad" in lower_prompt or "tough" in lower_prompt:
+            return self._generate_difficult_message(agent_context)
         elif session_type in ["practice", "fp1", "fp2", "fp3"]:
-            return self._generate_practice_message()
+            return self._generate_practice_message(agent_context)
         elif session_type == "qualifying":
-            return self._generate_qualifying_message()
+            return self._generate_qualifying_message(agent_context)
         else:
-            return self._generate_generic_message()
+            return self._generate_generic_message(agent_context)
     
     def _clean_llm_response(self, raw_content: str) -> str:
-        """Clean LLM response to extract only the actual message content"""
+        """Extract clean social media message from LLM response by filtering metadata"""
+        if not raw_content or raw_content.strip() == "":
+            return "Ready to give it everything on track! 🏎️ #F1"
+            
         lines = raw_content.split('\n')
         message_lines = []
         
         for line in lines:
             line = line.strip()
-            # Skip meta-information lines
+            # Skip empty lines
+            if not line:
+                continue
+                
+            # Filter out obvious LLM metadata and explanatory content (be less aggressive)
             if (line.startswith('*') and 'chars' in line) or \
                line.startswith('**Why this works:') or \
-               line.startswith('- **') or \
-               line.startswith('- ') or \
-               line.startswith('**') or \
-               'F1 terminology' in line or \
-               'Emotion:' in line or \
-               'Relevant details:' in line:
+               line.startswith('**Note:') or \
+               line.startswith('**Context:') or \
+               line.startswith('Requirements:') or \
+               line.startswith('- Use F1 terminology') or \
+               line.startswith('- Show appropriate emotion') or \
+               line.startswith('- Mention relevant racing'):
                 continue
             
-            # Keep actual message content
-            if line and not line.startswith('#') and not line.startswith('Note:'):
-                message_lines.append(line)
+            # Keep everything else as potential message content
+            message_lines.append(line)
         
-        # Join the cleaned lines and return the first substantial message
+        if not message_lines:
+            return "Ready to give it everything on track! 🏎️ #F1"
+        
         cleaned_message = '\n'.join(message_lines).strip()
         
-        # If we have multiple paragraphs, take the first one (likely the actual message)
+        # Return first substantial line/paragraph as the main message
         paragraphs = cleaned_message.split('\n\n')
-        if paragraphs:
-            return paragraphs[0].strip()
+        first_paragraph = paragraphs[0].strip()
         
-        return cleaned_message or "Ready to give it everything on track! 🏎️ #F1"
+        # If first paragraph is substantial, return it; otherwise try the full cleaned message
+        if len(first_paragraph) > 20:  # Ensure we have substantial content
+            return first_paragraph
+        elif len(cleaned_message) > 20:
+            return cleaned_message
+        
+        # Final fallback
+        return "Ready to give it everything on track! 🏎️ #F1"
     
     def _extract_mood_from_prompt(self, prompt: str) -> str:
         """Extract emotional context from prompt"""
@@ -254,16 +294,21 @@ class F1TextGenerator:
             return "race"
         return "unknown"
     
-    def _generate_victory_message(self) -> str:
+    def _generate_victory_message(self, agent_context=None) -> str:
         """Generate victory celebration message"""
+        # Get circuit info from agent context or default to Silverstone
+        current_circuit = agent_context.current_circuit if agent_context else "silverstone"
+        circuit = F1_CIRCUITS.get(current_circuit, F1_CIRCUITS["silverstone"])
         templates = [
-            "YES! What a race! Huge thanks to the team for the amazing car. We pushed hard and it paid off. #Winner #TeamWork",
-            "INCREDIBLE! P1! This feeling never gets old. Massive effort from everyone in the garage. #Victory",
-            "Perfect race! The car was amazing today and the strategy was spot on. Thank you to all the fans! #P1",
+            f"YES! P1 at {circuit.name}! What a race! Huge thanks to the team for the amazing car. We pushed hard and it paid off! 🏆 #Winner #Victory #TeamWork",
+            f"INCREDIBLE feeling crossing the line first! P1! This feeling never gets old. Massive effort from everyone in the garage. Thank you fans! 🥇 #Victory #F1 #Champions",
+            f"Perfect race at {circuit.name}! The car was amazing today and the strategy was spot on. From pole to victory! Thank you to all the fans! 🏁 #P1 #Victory",
+            f"WE DID IT! Victory at {circuit.name}! Absolutely buzzing right now. The team gave me the perfect car and we executed flawlessly! 🏆 #Victory #RaceWin",
+            f"YESSS! Race winner! What an incredible fight out there. The car felt amazing and we got the job done! Massive thanks to the whole team! 🥇 #Winner #Champion"
         ]
         return random.choice(templates)
     
-    def _generate_podium_message(self) -> str:
+    def _generate_podium_message(self, agent_context=None) -> str:
         """Generate podium celebration message"""
         templates = [
             "On the podium! Great team work and solid execution today. Building momentum for the next one! #Podium",
@@ -272,7 +317,7 @@ class F1TextGenerator:
         ]
         return random.choice(templates)
     
-    def _generate_difficult_message(self) -> str:
+    def _generate_difficult_message(self, agent_context=None) -> str:
         """Generate message for difficult sessions"""
         templates = [
             "Not the result we wanted today. Gave it my all out there, but things didn't go our way. We'll analyze and come back stronger. #NeverGiveUp",
@@ -281,7 +326,7 @@ class F1TextGenerator:
         ]
         return random.choice(templates)
     
-    def _generate_practice_message(self) -> str:
+    def _generate_practice_message(self, agent_context=None) -> str:
         """Generate practice session message"""
         templates = [
             "Getting some good laps in during practice. Feeling comfortable with the car setup. Let's keep pushing! #Practice",
@@ -290,7 +335,7 @@ class F1TextGenerator:
         ]
         return random.choice(templates)
     
-    def _generate_qualifying_message(self) -> str:
+    def _generate_qualifying_message(self, agent_context=None) -> str:
         """Generate qualifying message"""
         templates = [
             "Qualifying done! Every tenth counts out there. Gave it everything in that final sector. #Quali",
@@ -299,12 +344,18 @@ class F1TextGenerator:
         ]
         return random.choice(templates)
     
-    def _generate_generic_message(self) -> str:
+    def _generate_generic_message(self, agent_context=None) -> str:
         """Generate generic F1-style message"""
+        # Get circuit info from agent context or default to Silverstone
+        current_circuit = agent_context.current_circuit if agent_context else "silverstone"
+        circuit = F1_CIRCUITS.get(current_circuit, F1_CIRCUITS["silverstone"])
+        
         templates = [
-            "Focus and determination. That's what it takes out there. Ready for the challenge! #F1Life",
-            "Another day, another opportunity to push the limits. Grateful for this journey! #Racing",
-            "The track is calling. Time to give everything we've got! #NeverSettle",
+            f"Focus and determination at {circuit.name}. That's what it takes out there. Ready for the challenge! #F1Life #Racing",
+            f"Another day, another opportunity to push the limits at {circuit.name}. Grateful for this journey! #F1 #NeverGiveUp",
+            f"The track is calling at {circuit.name}. Time to give everything we've got! Ready to race! #RacingLife #F1",
+            f"Preparing for another battle on track. {circuit.name} is ready, and so are we! Let's do this! #TeamWork #F1",
+            f"Every session is a chance to improve. Feeling good about our pace at {circuit.name}! #Progress #F1Life"
         ]
         return random.choice(templates)
 
@@ -357,7 +408,15 @@ class F1Agent:
         prompt = self._build_context_prompt(message_type, custom_prompt)
         
         # Try LLM first, then fall back to templates
-        message = self.text_generator.generate_with_llm(prompt)
+        try:
+            message = self.text_generator.generate_with_llm(prompt, self.context)
+            # Ensure we got a meaningful response
+            if not message or len(message.strip()) < 10 or message.strip().startswith('#'):
+                # LLM failed or returned insufficient content, use templates
+                message = self.text_generator.generate_with_templates(prompt, self.context)
+        except Exception as e:
+            # Any error in LLM generation, fall back to templates
+            message = self.text_generator.generate_with_templates(prompt, self.context)
         
         # Enhance message with F1 context
         enhanced_message = self._enhance_message_with_context(message)
@@ -448,11 +507,12 @@ Context details:
         return action
     
     def act_reply_to_comment(self, original_comment: str) -> SocialMediaAction:
-        """Simulate replying to a fan comment"""
-        # Analyze sentiment of the comment
-        sentiment = "positive"  # Default
+        """Generate contextual reply to fan comment with sentiment analysis"""
+        # Analyze fan comment sentiment to tailor response appropriately
+        sentiment = "positive"  # Default assumption
         if NLTK_AVAILABLE and self.text_generator.sentiment_analyzer:
             scores = self.text_generator.sentiment_analyzer.polarity_scores(original_comment)
+            # Use VADER sentiment thresholds for classification
             if scores['compound'] >= 0.05:
                 sentiment = "positive"
             elif scores['compound'] <= -0.05:
@@ -624,7 +684,7 @@ Context details:
     
     def run_race_weekend_simulation(self, circuit_key: str = None, 
                                   weekend_type: str = "standard_weekend") -> Dict[str, Any]:
-        """Simulate a complete race weekend with context updates"""
+        """Simulate complete race weekend with dynamic context and message generation"""
         if circuit_key:
             self.think_update_context(current_circuit=circuit_key)
         
@@ -639,25 +699,25 @@ Context details:
             "final_status": ""
         }
         
-        # Simulate each session
+        # Process each session chronologically with context updates
         for session_info in weekend_sessions:
             session_type = session_info["session"]
             
-            # Update context for session
+            # Update agent context to reflect current session state
             self.think_update_context(
                 current_session=session_type,
                 current_state=self._map_session_to_state(session_type)
             )
             
-            # Generate realistic result
+            # Generate realistic session result based on team performance
             team_performance = self._determine_team_performance()
             result = get_realistic_session_result(session_type, team_performance)
             self.context.last_result = result
             
-            # Update mood based on result
+            # Adjust agent mood based on session performance
             self._update_mood_from_result(result, session_type)
             
-            # Generate message for session
+            # Generate contextual social media message for the session
             session_message = self.speak(MessageType.POST)
             
             session_data = {

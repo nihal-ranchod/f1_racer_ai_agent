@@ -120,7 +120,7 @@ document.getElementById('likeForm').addEventListener('submit', async function(e)
     const button = this.querySelector('button[type="submit"]');
     const originalText = addLoadingState(button);
     
-    showToast('Liking...', 'Processing post like action...', 'info', 1000);
+    // Liking post is a simple action - remove unnecessary toast
     
     try {
         const postContent = document.getElementById('likeContent').value;
@@ -191,7 +191,7 @@ document.getElementById('mentionForm').addEventListener('submit', async function
 
 // Load context with detailed display and sidebar update
 async function loadContext() {
-    showToast('Loading...', 'Fetching current agent context...', 'info', 1000);
+    // Loading context is a minor action - remove toast
     
     try {
         const result = await makeApiRequest('/think/context');
@@ -199,7 +199,7 @@ async function loadContext() {
         if (result.success) {
             displayContext(result.context);
             updateSidebarContext(result.context);
-            showToast('Context Loaded!', 'Agent context refreshed successfully', 'success', 2000);
+            // Context loaded successfully - no toast needed for this common action
         }
         
     } catch (error) {
@@ -214,7 +214,7 @@ document.getElementById('updateForm').addEventListener('submit', async function(
     const button = this.querySelector('button[type="submit"]');
     const originalText = addLoadingState(button);
     
-    showToast('Updating...', 'Updating agent context...', 'info', 2000);
+    // Updating context - keep minimal feedback
     
     try {
         const formData = new FormData(this);
@@ -469,5 +469,5 @@ document.addEventListener('DOMContentLoaded', function() {
         loadContext();
     }, 1000);
     
-    showToast('Dashboard Ready!', 'F1 AI Agent dashboard loaded. Ready to start racing! 🏎️', 'success', 3000);
+    // Dashboard initialization - no toast needed
 });

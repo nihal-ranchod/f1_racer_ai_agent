@@ -36,6 +36,8 @@ ENV FLASK_APP=app.py
 ENV FLASK_ENV=production
 ENV FLASK_RUN_HOST=0.0.0.0
 ENV FLASK_RUN_PORT=5000
+ENV NLTK_DATA=/home/f1agent/nltk_data
+ENV DOCKER_CONTAINER=true
 
 # Install runtime dependencies only
 RUN apt-get update && apt-get install -y \
@@ -43,8 +45,8 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Create non-root user for security
-RUN groupadd -r f1agent && useradd -r -g f1agent f1agent
+# Create non-root user for security with home directory
+RUN groupadd -r f1agent && useradd -r -g f1agent -m -d /home/f1agent f1agent
 
 # Create and set working directory
 WORKDIR /app
@@ -56,9 +58,17 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy application code
 COPY --chown=f1agent:f1agent . .
 
-# Create necessary directories
+# Pre-download NLTK data as root to avoid permission issues
+RUN python -c "import nltk; nltk.download('vader_lexicon', quiet=True); nltk.download('punkt', quiet=True); nltk.download('stopwords', quiet=True)" && \
+    mkdir -p /home/f1agent/nltk_data && \
+    if [ -d /root/nltk_data ]; then cp -r /root/nltk_data/* /home/f1agent/nltk_data/; fi && \
+    if [ -d /usr/share/nltk_data ]; then cp -r /usr/share/nltk_data/* /home/f1agent/nltk_data/; fi && \
+    if [ -d /usr/local/share/nltk_data ]; then cp -r /usr/local/share/nltk_data/* /home/f1agent/nltk_data/; fi
+
+# Create necessary directories and set permissions
 RUN mkdir -p logs && \
-    chown -R f1agent:f1agent /app
+    chown -R f1agent:f1agent /app && \
+    chown -R f1agent:f1agent /home/f1agent
 
 # Switch to non-root user
 USER f1agent

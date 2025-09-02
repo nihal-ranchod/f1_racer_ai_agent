@@ -483,30 +483,32 @@ RACE_WEEKEND_SESSIONS = {
 }
 
 def get_realistic_session_result(session_type: SessionType, team_performance: str = "midfield") -> SessionResult:
-    """Generate realistic session results based on team performance"""
+    """Generate realistic session results based on team performance tier"""
     
-    # Position ranges based on team performance
+    # Define position ranges that reflect F1 competitive hierarchy
     position_ranges = {
-        "top_team": (1, 6),
-        "midfield": (7, 15), 
-        "backmarker": (16, 20)
+        "top_team": (1, 6),     # Front-runners (Red Bull, Ferrari, Mercedes)
+        "midfield": (7, 15),    # Competitive midfield teams
+        "backmarker": (16, 20)  # Struggling teams
     }
     
     pos_range = position_ranges.get(team_performance, (7, 15))
     position = random.randint(*pos_range)
     
-    # Realistic lap times and gaps
+    # Generate session-specific lap times and timing gaps
     if session_type == SessionType.QUALIFYING:
+        # Qualifying gaps are typically smaller and more precise
         gaps = ["+0.000", "+0.123", "+0.287", "+0.445", "+0.567", "+0.789", "+1.234", "+1.567", "+2.123"]
         gap = gaps[min(position-1, len(gaps)-1)] if position > 1 else None
-        best_time = "1:23.456"
-        laps = random.randint(8, 12)
+        best_time = "1:23.456"    # Representative qualifying lap time
+        laps = random.randint(8, 12)  # Typical qualifying lap count
     else:  # Practice sessions
+        # Practice sessions have more varied gaps and longer run times
         gap = f"+{random.uniform(0.1, 3.0):.3f}" if position > 1 else None
         best_time = f"1:{random.randint(22, 26)}.{random.randint(100, 999)}"
-        laps = random.randint(15, 35)
+        laps = random.randint(15, 35)  # Practice sessions allow more laps
     
-    # Realistic incidents
+    # Add realistic F1 incidents that commonly occur during sessions
     incident_pool = ["lock-up turn 1", "flat-spot front left", "off-track limits turn 4", 
                     "yellow flag sector 2", "traffic in final sector"]
     incidents = random.sample(incident_pool, k=random.randint(0, 2))
@@ -520,12 +522,13 @@ def get_realistic_session_result(session_type: SessionType, team_performance: st
     )
 
 def get_circuit_specific_challenges(circuit_name: str) -> List[str]:
-    """Get specific challenges for each circuit"""
+    """Extract racing challenges specific to each F1 circuit based on characteristics"""
     circuit = F1_CIRCUITS.get(circuit_name)
     if not circuit:
-        return ["setup challenges", "tyre management"]
+        return ["setup challenges", "tyre management"]  # Generic fallback challenges
     
     challenges = []
+    # Map circuit characteristics to specific racing challenges
     if "narrow" in circuit.characteristics:
         challenges.extend(["track positioning crucial", "limited overtaking"])
     if "high-speed" in circuit.characteristics:
@@ -535,12 +538,13 @@ def get_circuit_specific_challenges(circuit_name: str) -> List[str]:
     if "weather-unpredictable" in circuit.characteristics:
         challenges.extend(["weather decisions critical", "tyre strategy complex"])
     
-    return challenges[:3]  # Return top 3 challenges
+    return challenges[:3]  # Limit to most relevant challenges
 
 def get_teammate_name(driver_name: str) -> Optional[str]:
-    """Get teammate name for a given driver"""
+    """Find current F1 teammate for given driver name"""
     for team in F1_TEAMS.values():
         if driver_name in team.drivers:
+            # Filter out the input driver to find their teammate
             teammates = [d for d in team.drivers if d != driver_name]
             return teammates[0] if teammates else None
     return None
@@ -553,10 +557,12 @@ def get_team_by_driver(driver_name: str) -> Optional[Team]:
     return None
 
 def get_random_competitor(exclude_driver: str) -> str:
-    """Get random competitor driver name excluding specified driver"""
+    """Select random F1 competitor excluding the specified driver"""
+    # Compile list of all current F1 drivers across all teams
     all_drivers = []
     for team in F1_TEAMS.values():
         all_drivers.extend(team.drivers)
     
+    # Filter out the excluded driver to get potential competitors
     competitors = [d for d in all_drivers if d != exclude_driver]
-    return random.choice(competitors) if competitors else "Lewis Hamilton"
+    return random.choice(competitors) if competitors else "Lewis Hamilton"  # Fallback to iconic driver

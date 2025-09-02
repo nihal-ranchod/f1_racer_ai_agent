@@ -506,6 +506,9 @@ body::before {
     color: var(--f1-white);
     white-space: pre-wrap;
     word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 .f1-result-meta {
@@ -636,10 +639,12 @@ body::before {
     
     .f1-dashboard {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
     
     .f1-sidebar {
         position: static;
+        padding: 1rem;
     }
     
     .f1-container {
@@ -650,6 +655,47 @@ body::before {
         left: 20px;
         right: 20px;
         max-width: none;
+    }
+    
+    .f1-context-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .f1-context-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem;
+    }
+    
+    .f1-context-value {
+        text-align: left;
+        max-width: 100%;
+    }
+    
+    .f1-card {
+        padding: 1rem;
+    }
+    
+    .f1-session-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .f1-context-section {
+        padding: 1rem;
+    }
+    
+    .f1-sidebar-section {
+        padding-bottom: 1rem;
+    }
+    
+    .f1-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
     }
 }
 
@@ -665,6 +711,9 @@ body::before {
     border-radius: 10px;
     padding: 1.5rem;
     position: relative;
+    overflow: hidden;
+    word-wrap: break-word;
+    min-width: 0;
 }
 
 .f1-session-header {
@@ -704,13 +753,18 @@ body::before {
     border-left: 4px solid var(--f1-red);
     font-style: italic;
     margin-top: 1rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
 }
 
 /* Context Display */
 .f1-context-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1rem;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .f1-context-section {
@@ -718,6 +772,9 @@ body::before {
     border: 1px solid var(--f1-grey);
     border-radius: 10px;
     padding: 1.5rem;
+    overflow: hidden;
+    word-wrap: break-word;
+    min-width: 0;
 }
 
 .f1-context-title {
@@ -732,8 +789,11 @@ body::before {
 .f1-context-item {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     padding: 0.5rem 0;
     border-bottom: 1px solid var(--f1-grey);
+    gap: 1rem;
+    min-width: 0;
 }
 
 .f1-context-item:last-child {
@@ -743,11 +803,18 @@ body::before {
 .f1-context-label {
     color: var(--f1-light-grey);
     font-size: 0.9rem;
+    flex-shrink: 0;
+    min-width: 0;
 }
 
 .f1-context-value {
     color: var(--f1-white);
     font-weight: 500;
+    text-align: right;
+    flex-shrink: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 60%;
 }
 
 /* Copy Button */
@@ -782,6 +849,25 @@ body::before {
 .f1-flex-column { flex-direction: column; }
 .f1-gap-1 { gap: 0.5rem; }
 .f1-gap-2 { gap: 1rem; }
+
+/* Overflow protection for all grids and flex containers */
+.f1-dashboard * {
+    min-width: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Ensure all grid containers handle overflow properly */
+[style*="grid-template-columns"] {
+    overflow: hidden;
+}
+
+/* Force text to wrap in tight spaces */
+.f1-info-value, .f1-context-value, .f1-session-message, .f1-result-content {
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+}
 
 /* Configuration Welcome */
 .f1-welcome {
