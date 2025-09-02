@@ -168,8 +168,10 @@ FP3 done at this absolute beast of a track! 🏎️💨 Silverstone’s high-spe
 ```
 
 ### Fan Interaction Example
+```
 **Fan Comment**: "Great qualifying session! P2 is amazing!"
 **Agent Reply**: "Cheers, mate! P2 feels good—especially here at Silverstone. The car’s hooked up, and the crowd’s energy is next level. Let’s keep pushing! 💨🏆#L4NDO #McLaren #BritishGP #SilverstoneCircuit #FP3"
+```
 
 ## Design Choices & Architecture
 
