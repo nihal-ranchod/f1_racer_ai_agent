@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - F1 Racer AI Agent{% endblock %}
+
+{% block content %}
+<div class="f1-dashboard">
+    <!-- Sidebar -->
+    <div class="f1-sidebar">
+        <!-- Agent Info Section -->
+        <div class="f1-sidebar-section">
+            <h3 class="f1-sidebar-title">Agent Status</h3>
+            <div class="f1-agent-info">
+                <div class="f1-info-item">
+                    <span class="f1-info-label">Driver:</span>
+                    <span class="f1-info-value" id="sidebarDriverName">{{ driver_name }}</span>
+                </div>
+                <div class="f1-info-item">
+                    <span class="f1-info-label">Team:</span>
+                    <span class="f1-info-value" id="sidebarTeamName">{{ team_name }}</span>
+                </div>
+                <div class="f1-info-item">
+                    <span class="f1-info-label">Status:</span>
+                    <span class="f1-status-badge f1-status-active">Active</span>
+                </div>
+            </div>
+            <button class="f1-btn f1-btn-secondary f1-mt-2" onclick="loadContext()" style="width: 100%; padding: 0.5rem;">
+                <i class="fas fa-sync-alt"></i> Refresh Context
+            </button>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="f1-sidebar-section">
+            <h3 class="f1-sidebar-title">Quick Actions</h3>
+            <div class="f1-quick-actions">
+                <button class="f1-quick-btn active" onclick="showTab('speak')" id="speak-btn">
+                    <i class="fas fa-microphone"></i> Generate Message
+                </button>
+                <button class="f1-quick-btn" onclick="showTab('act')" id="act-btn">
+                    <i class="fas fa-share-alt"></i> Social Actions
+                </button>
+                <button class="f1-quick-btn" onclick="showTab('think')" id="think-btn">
+                    <i class="fas fa-brain"></i> Context & Analysis
+                </button>
+                <button class="f1-quick-btn" onclick="showTab('simulation')" id="simulation-btn">
+                    <i class="fas fa-flag-checkered"></i> Race Simulation
+                </button>
+            </div>
+        </div>
+        
+        <!-- Current Context Info -->
+        <div class="f1-sidebar-section">
+            <h3 class="f1-sidebar-title">Current Context</h3>
+            <div class="f1-agent-info" id="sidebarContext">
+                <div class="f1-info-item">
+                    <span class="f1-info-label">Circuit:</span>
+                    <span class="f1-info-value" id="currentCircuit">Loading...</span>
+                </div>
+                <div class="f1-info-item">
+                    <span class="f1-info-label">Session:</span>
+                    <span class="f1-info-value" id="currentSession">Loading...</span>
+                </div>
+                <div class="f1-info-item">
+                    <span class="f1-info-label">Mood:</span>
+                    <span class="f1-info-value" id="currentMood">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="f1-main-content">
+        <!-- Speak Tab -->
+        <div id="speak-tab" class="f1-capability-tab active">
+            <div class="f1-card">
+                <div class="f1-card-header">
+                    <i class="fas fa-microphone"></i>
+                    <h2 class="f1-card-title">Speak - Generate Messages</h2>
+                </div>
+                
+                <form id="speakForm">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                        <div class="f1-form-group">
+                            <label for="messageType" class="f1-label">Message Type</label>
+                            <select class="f1-select" id="messageType" name="messageType">
+                                <option value="post">Social Media Post</option>
+                                <option value="reply">Reply to Comment</option>
+                                <option value="status_update">Status Update</option>
+                                <option value="mention">Mention Someone</option>
+                                <option value="reaction">Reaction</option>
+                            </select>
+                        </div>
+                        <div class="f1-form-group">
+                            <label for="customContext" class="f1-label">Context (Optional)</label>
+                            <input type="text" class="f1-input" id="customContext" name="customContext" placeholder="e.g., victory, podium, difficult session">
+                        </div>
+                    </div>
+                    <button type="submit" class="f1-btn">
+                        <i class="fas fa-rocket"></i> Generate Message
+                    </button>
+                </form>
+                
+                <div id="speakResult" class="f1-hidden"></div>
+            </div>
+        </div>
+        
+        <!-- Act Tab -->
+        <div id="act-tab" class="f1-capability-tab">
+            <div class="f1-card">
+                <div class="f1-card-header">
+                    <i class="fas fa-share-alt"></i>
+                    <h2 class="f1-card-title">Act - Social Media Actions</h2>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <!-- Post Status -->
+                    <div class="f1-card" style="margin-bottom: 0;">
+                        <div class="f1-card-header">
+                            <i class="fas fa-paper-plane"></i>
+                            <h3 class="f1-card-title" style="font-size: 1.2rem;">Post Status Update</h3>
+                        </div>
+                        <form id="postForm">
+                            <div class="f1-form-group">
+                                <label for="postContent" class="f1-label">Content (Optional)</label>
+                                <textarea class="f1-textarea" id="postContent" rows="3" placeholder="Leave empty to auto-generate"></textarea>
+                            </div>
+                            <button type="submit" class="f1-btn f1-btn-info">
+                                <i class="fas fa-paper-plane"></i> Post Update
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Reply to Comment -->
+                    <div class="f1-card" style="margin-bottom: 0;">
+                        <div class="f1-card-header">
+                            <i class="fas fa-reply"></i>
+                            <h3 class="f1-card-title" style="font-size: 1.2rem;">Reply to Fan Comment</h3>
+                        </div>
+                        <form id="replyForm">
+                            <div class="f1-form-group">
+                                <label for="fanComment" class="f1-label">Fan Comment</label>
+                                <textarea class="f1-textarea" id="fanComment" rows="3" placeholder="Enter fan comment to reply to" required></textarea>
+                            </div>
+                            <button type="submit" class="f1-btn f1-btn-info">
+                                <i class="fas fa-reply"></i> Reply to Comment
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                    <!-- Like Post -->
+                    <div class="f1-card" style="margin-bottom: 0;">
+                        <div class="f1-card-header">
+                            <i class="fas fa-heart"></i>
+                            <h3 class="f1-card-title" style="font-size: 1.2rem;">Like a Post</h3>
+                        </div>
+                        <form id="likeForm">
+                            <div class="f1-form-group">
+                                <label for="likeContent" class="f1-label">Post to Like</label>
+                                <textarea class="f1-textarea" id="likeContent" rows="2" placeholder="Enter the post content to like" required></textarea>
+                            </div>
+                            <button type="submit" class="f1-btn f1-btn-info">
+                                <i class="fas fa-heart"></i> Like Post
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Mention Someone -->
+                    <div class="f1-card" style="margin-bottom: 0;">
+                        <div class="f1-card-header">
+                            <i class="fas fa-at"></i>
+                            <h3 class="f1-card-title" style="font-size: 1.2rem;">Mention Someone</h3>
+                        </div>
+                        <form id="mentionForm">
+                            <div class="f1-form-group">
+                                <label for="personName" class="f1-label">Person to Mention</label>
+                                <input type="text" class="f1-input" id="personName" placeholder="e.g., LewisHamilton" required>
+                            </div>
+                            <div class="f1-form-group">
+                                <label for="mentionContext" class="f1-label">Context</label>
+                                <select class="f1-select" id="mentionContext">
+                                    <option value="general">General</option>
+                                    <option value="congratulations">Congratulations</option>
+                                    <option value="rivalry">Friendly Rivalry</option>
+                                    <option value="support">Support</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="f1-btn f1-btn-info">
+                                <i class="fas fa-at"></i> Mention
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div id="actResult" class="f1-hidden"></div>
+            </div>
+        </div>
+        
+        <!-- Think Tab -->
+        <div id="think-tab" class="f1-capability-tab">
+            <div class="f1-card">
+                <div class="f1-card-header">
+                    <i class="fas fa-brain"></i>
+                    <h2 class="f1-card-title">Think - Context & Analysis</h2>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <!-- Current Context Display -->
+                    <div class="f1-card" style="margin-bottom: 0;">
+                        <div class="f1-card-header">
+                            <i class="fas fa-info-circle"></i>
+                            <h3 class="f1-card-title" style="font-size: 1.2rem;">Current Context</h3>
+                        </div>
+                        <button class="f1-btn f1-btn-warning f1-mb-2" onclick="loadContext()" style="width: 100%;">
+                            <i class="fas fa-sync-alt"></i> Load Current Context
+                        </button>
+                        <div id="contextDisplay" class="f1-context-grid">
+                            <p style="color: var(--f1-light-grey); text-align: center;">Click "Load Current Context" to view agent state</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Update Context -->
+                    <div class="f1-card" style="margin-bottom: 0;">
+                        <div class="f1-card-header">
+                            <i class="fas fa-edit"></i>
+                            <h3 class="f1-card-title" style="font-size: 1.2rem;">Update Context</h3>
+                        </div>
+                        <form id="updateForm">
+                            <div class="f1-form-group">
+                                <label for="updateCircuit" class="f1-label">Circuit</label>
+                                <select class="f1-select" id="updateCircuit" name="circuit">
+                                    <option value="">Keep Current</option>
+                                </select>
+                            </div>
+                            <div class="f1-form-group">
+                                <label for="updateSession" class="f1-label">Session</label>
+                                <select class="f1-select" id="updateSession" name="session">
+                                    <option value="">Keep Current</option>
+                                    <option value="fp1">Free Practice 1</option>
+                                    <option value="fp2">Free Practice 2</option>
+                                    <option value="fp3">Free Practice 3</option>
+                                    <option value="sprint_shootout">Sprint Shootout</option>
+                                    <option value="sprint_race">Sprint Race</option>
+                                    <option value="qualifying">Qualifying</option>
+                                    <option value="race">Race</option>
+                                </select>
+                            </div>
+                            <div class="f1-form-group">
+                                <label for="updateMood" class="f1-label">Mood</label>
+                                <select class="f1-select" id="updateMood" name="mood">
+                                    <option value="">Keep Current</option>
+                                    <option value="ecstatic">Ecstatic</option>
+                                    <option value="satisfied">Satisfied</option>
+                                    <option value="neutral">Neutral</option>
+                                    <option value="disappointed">Disappointed</option>
+                                    <option value="frustrated">Frustrated</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="f1-btn f1-btn-warning">
+                                <i class="fas fa-save"></i> Update Context
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <div id="thinkResult" class="f1-hidden"></div>
+            </div>
+        </div>
+        
+        <!-- Simulation Tab -->
+        <div id="simulation-tab" class="f1-capability-tab">
+            <div class="f1-card">
+                <div class="f1-card-header">
+                    <i class="fas fa-flag-checkered"></i>
+                    <h2 class="f1-card-title">Race Weekend Simulation</h2>
+                </div>
+                
+                <form id="simulationForm">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                        <div class="f1-form-group">
+                            <label for="simCircuit" class="f1-label">Circuit</label>
+                            <select class="f1-select" id="simCircuit" name="circuit_key">
+                                <!-- Options loaded by JavaScript -->
+                            </select>
+                        </div>
+                        <div class="f1-form-group">
+                            <label for="simWeekendType" class="f1-label">Weekend Type</label>
+                            <select class="f1-select" id="simWeekendType" name="weekend_type">
+                                <option value="standard_weekend">Standard Weekend</option>
+                                <option value="sprint_weekend">Sprint Weekend</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="f1-btn">
+                        <i class="fas fa-play"></i> Run Simulation
+                    </button>
+                </form>
+                
+                <div id="simulationLoading" class="f1-text-center f1-mt-3 f1-hidden">
+                    <div class="f1-spinner" style="width: 40px; height: 40px; margin: 0 auto 1rem;"></div>
+                    <p>Running race weekend simulation...</p>
+                </div>
+                
+                <div id="simulationResult" class="f1-hidden"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

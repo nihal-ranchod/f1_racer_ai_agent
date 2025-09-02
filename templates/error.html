@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Error - F1 Racer AI Agent{% endblock %}
+
+{% block content %}
+<div class="f1-text-center" style="padding: 4rem 2rem;">
+    <div class="f1-card" style="max-width: 600px; margin: 0 auto;">
+        <div class="f1-card-header">
+            <i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>
+            <h2 class="f1-card-title" style="color: var(--warning);">Something Went Wrong!</h2>
+        </div>
+        
+        <div style="padding: 2rem; text-align: center;">
+            <i class="fas fa-exclamation-circle" style="font-size: 4rem; color: var(--warning); margin-bottom: 2rem;"></i>
+            <h3 style="color: var(--f1-white); margin-bottom: 1rem;">Race Stopped!</h3>
+            <p style="color: var(--f1-light-grey); font-size: 1.1rem; margin-bottom: 2rem;">{{ error }}</p>
+            
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="/" class="f1-btn">
+                    <i class="fas fa-home"></i> Return to Pit Lane
+                </a>
+                <a href="/dashboard" class="f1-btn f1-btn-secondary">
+                    <i class="fas fa-tachometer-alt"></i> Back to Dashboard
+                </a>
+            </div>
+            
+            <p style="color: var(--f1-light-grey); font-size: 0.9rem; margin-top: 2rem;">
+                <i class="fas fa-info-circle"></i> 
+                If this problem persists, check your agent configuration and try again.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

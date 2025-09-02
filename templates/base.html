@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}F1 Racer AI Agent{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <header class="f1-header">
+        <nav class="f1-nav">
+            <a href="/" class="f1-logo">
+                <i class="fas fa-flag-checkered"></i>
+                F1 AI AGENT
+            </a>
+            <ul class="f1-nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="f1-container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="f1-toast-container"></div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

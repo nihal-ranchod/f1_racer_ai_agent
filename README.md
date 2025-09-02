@@ -56,7 +56,7 @@ MISTRAL_API_KEY=your_mistral_api_key_here
 
 ### Running the Agent
 
-#### Interactive CLI Mode (Recommended)
+#### Interactive CLI Mode
 ```bash
 python3 f1_agent.py
 ```
@@ -74,6 +74,32 @@ The CLI provides an intuitive interface with the following menu:
 8. Run Race Weekend Simulation
 9. Exit
 ```
+
+#### Web Interface (Recommended)
+For a more user-friendly experience, use the professional web interface:
+
+```bash
+# Simple start
+python3 run_web.py
+
+# Custom port
+python3 run_web.py --port 8080
+
+# Debug mode
+python3 run_web.py --debug
+
+# Accept external connections
+python3 run_web.py --host 0.0.0.0
+```
+
+Then open http://localhost:5000 in your browser.
+
+The web interface provides:
+- Clean, professional F1-themed design
+- All CLI functionality in a dashboard format
+- Real-time agent configuration and interaction
+- Responsive design for desktop and mobile
+- Session-based agent management
 
 #### Python Script Usage
 ```python
@@ -231,6 +257,10 @@ Comprehensive F1 database includes:
 f1_racer_ai_agent/
 ├── f1_agent.py          # Core agent implementation with CLI
 ├── f1_data.py           # F1 data and utilities
+├── app.py               # Flask web application
+├── run_web.py           # Web interface launcher
+├── templates/           # HTML templates for web interface
+├── static/              # CSS and JavaScript for web interface
 ├── test_agent.py        # Testing script
 ├── requirements.txt     # Python dependencies
 ├── .env                 # Environment variables (your API key)

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Configure Agent - F1 Racer AI Agent{% endblock %}
+
+{% block content %}
+<div class="f1-welcome">
+    <h1 class="f1-welcome-title">F1 AI Agent</h1>
+    <p class="f1-welcome-subtitle">Configure your virtual Formula 1 driver and start racing!</p>
+    
+    <div class="f1-card">
+        <div class="f1-card-header">
+            <i class="fas fa-cog"></i>
+            <h2 class="f1-card-title">Agent Configuration</h2>
+        </div>
+        
+        <form id="configForm">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <div class="f1-form-group">
+                    <label for="driver_name" class="f1-label">Driver Name</label>
+                    <input type="text" class="f1-input" id="driver_name" name="driver_name" value="Alex Driver" required>
+                </div>
+                
+                <div class="f1-form-group">
+                    <label for="team_key" class="f1-label">Team</label>
+                    <select class="f1-select" id="team_key" name="team_key" required>
+                        {% for team_key, team in teams.items() %}
+                        <option value="{{ team_key }}" {% if team_key == 'mclaren' %}selected{% endif %}>
+                            {{ team.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <div class="f1-form-group">
+                    <label for="circuit_key" class="f1-label">Starting Circuit</label>
+                    <select class="f1-select" id="circuit_key" name="circuit_key">
+                        {% for circuit_key in circuits %}
+                        <option value="{{ circuit_key }}" {% if circuit_key == 'silverstone' %}selected{% endif %}>
+                            {{ circuit_key.title().replace('_', ' ') }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="f1-form-group">
+                    <label for="weekend_type" class="f1-label">Weekend Type</label>
+                    <select class="f1-select" id="weekend_type" name="weekend_type">
+                        <option value="standard_weekend" selected>Standard Weekend</option>
+                        <option value="sprint_weekend">Sprint Weekend</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="f1-text-center">
+                <button type="submit" class="f1-btn">
+                    <i class="fas fa-rocket"></i> Start Your Engines
+                </button>
+            </div>
+        </form>
+        
+        <div id="configResult" class="f1-result f1-hidden">
+            <div class="f1-result-header">
+                <i class="f1-result-icon fas fa-check-circle"></i>
+                <h3 class="f1-result-title">Agent Configured Successfully!</h3>
+            </div>
+            <div id="configDetails" class="f1-result-content"></div>
+            <div class="f1-result-meta">
+                <a href="/dashboard" class="f1-btn f1-btn-success">
+                    <i class="fas fa-tachometer-alt"></i> Enter The Cockpit
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="f1-features">
+        <div class="f1-feature">
+            <i class="f1-feature-icon fas fa-microphone"></i>
+            <h3 class="f1-feature-title">Speak</h3>
+            <p class="f1-feature-description">Generate authentic F1 racer messages with contextual awareness and racing terminology</p>
+        </div>
+        <div class="f1-feature">
+            <i class="f1-feature-icon fas fa-share-alt"></i>
+            <h3 class="f1-feature-title">Act</h3>
+            <p class="f1-feature-description">Simulate realistic social media interactions including posts, replies, and engagement</p>
+        </div>
+        <div class="f1-feature">
+            <i class="f1-feature-icon fas fa-brain"></i>
+            <h3 class="f1-feature-title">Think</h3>
+            <p class="f1-feature-description">Maintain race weekend context and adapt responses based on performance and conditions</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('configForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const button = this.querySelector('button[type="submit"]');
+    const originalText = button.innerHTML;
+    
+    // Add loading state
+    button.disabled = true;
+    button.innerHTML = '<div class="f1-spinner"></div> Configuring Agent...';
+    
+    const formData = new FormData(this);
+    const data = {
+        driver_name: formData.get('driver_name'),
+        team_key: formData.get('team_key'),
+        circuit_key: formData.get('circuit_key'),
+        weekend_type: formData.get('weekend_type')
+    };
+    
+    try {
+        const response = await fetch('/configure', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            document.getElementById('configDetails').innerHTML = `
+                <strong>Driver:</strong> ${result.driver_name}
+                <strong>Team:</strong> ${result.team_name}
+                <strong>Circuit:</strong> ${result.circuit}
+                
+                Your F1 AI Agent is ready to race!
+            `;
+            document.getElementById('configResult').classList.remove('f1-hidden');
+            this.style.display = 'none';
+            
+            showToast('Agent Ready!', 'Configuration completed successfully. Ready to race!', 'success');
+        } else {
+            showToast('Configuration Failed', result.error, 'danger');
+        }
+    } catch (error) {
+        showToast('Error', 'Failed to configure agent: ' + error.message, 'danger');
+    } finally {
+        button.disabled = false;
+        button.innerHTML = originalText;
+    }
+});
+</script>
+{% endblock %}
