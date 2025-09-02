@@ -161,16 +161,19 @@ class F1TextGenerator:
                         'content': prompt
                     }
                 ],
-                'max_tokens': max_tokens,
-                'temperature': 0.8,
-                'top_p': 0.9
+                'max_tokens': 100,  # Reduced for faster response
+                'temperature': 0.7,  # Slightly less random for speed
+                'top_p': 0.8
             }
             
-            response = requests.post(url, headers=headers, json=data, timeout=30)
+            response = requests.post(url, headers=headers, json=data, timeout=10)
             response.raise_for_status()
             
             result = response.json()
-            return result['choices'][0]['message']['content'].strip()
+            raw_content = result['choices'][0]['message']['content'].strip()
+            
+            # Clean up the response - extract only the actual message
+            return self._clean_llm_response(raw_content)
             
         except Exception as e:
             if os.getenv('DEBUG_MODE', 'false').lower() == 'true':
@@ -195,6 +198,38 @@ class F1TextGenerator:
             return self._generate_qualifying_message()
         else:
             return self._generate_generic_message()
+    
+    def _clean_llm_response(self, raw_content: str) -> str:
+        """Clean LLM response to extract only the actual message content"""
+        lines = raw_content.split('\n')
+        message_lines = []
+        
+        for line in lines:
+            line = line.strip()
+            # Skip meta-information lines
+            if (line.startswith('*') and 'chars' in line) or \
+               line.startswith('**Why this works:') or \
+               line.startswith('- **') or \
+               line.startswith('- ') or \
+               line.startswith('**') or \
+               'F1 terminology' in line or \
+               'Emotion:' in line or \
+               'Relevant details:' in line:
+                continue
+            
+            # Keep actual message content
+            if line and not line.startswith('#') and not line.startswith('Note:'):
+                message_lines.append(line)
+        
+        # Join the cleaned lines and return the first substantial message
+        cleaned_message = '\n'.join(message_lines).strip()
+        
+        # If we have multiple paragraphs, take the first one (likely the actual message)
+        paragraphs = cleaned_message.split('\n\n')
+        if paragraphs:
+            return paragraphs[0].strip()
+        
+        return cleaned_message or "Ready to give it everything on track! 🏎️ #F1"
     
     def _extract_mood_from_prompt(self, prompt: str) -> str:
         """Extract emotional context from prompt"""
@@ -350,13 +385,15 @@ Mood: {self.context.mood}
 Championship position: P{self.context.championship_position}
 Team mate: {self.context.team_mate_name}
 
-Generate an authentic F1 driver social media {message_type.value} that:
-1. Uses F1 terminology and racing language
-2. Shows appropriate emotion for the context
-3. Mentions relevant racing details
-4. Includes appropriate hashtags
-5. Sounds natural and authentic
-6. Keeps under 280 characters for social media
+Generate ONLY the social media message. Do not include any explanations, metadata, formatting, or additional text. Just return the raw message content that would be posted on social media.
+
+Requirements:
+- Use F1 terminology and racing language
+- Show appropriate emotion for the context
+- Mention relevant racing details
+- Include appropriate hashtags
+- Keep under 280 characters
+- Return ONLY the message, nothing else
 
 Context details:
 - Recent incidents: {', '.join(self.context.recent_incidents) if self.context.recent_incidents else 'None'}

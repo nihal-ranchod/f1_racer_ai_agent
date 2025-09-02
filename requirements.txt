@@ -31,3 +31,6 @@ mypy>=1.6.0
 # Configuration and Environment
 python-dotenv>=1.0.0
 pyyaml>=6.0.1
+
+# Web Application Framework
+flask>=2.3.0
