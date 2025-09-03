@@ -32,6 +32,26 @@ The F1 Racer AI Agent features three core capabilities inspired by authentic F1 
 - Python 3.11 or higher
 - Git
 
+### Linux/WSL Users
+If you're using Linux or Windows Subsystem for Linux (WSL), use `python3` instead of `python` in all commands:
+
+```bash
+# Instead of: python -m venv venv
+python3 -m venv venv
+
+# Instead of: python f1_agent.py
+python3 f1_agent.py
+
+# Instead of: python run_web.py
+python3 run_web.py
+```
+
+**Note**: You may also need to install additional packages on Ubuntu/Debian systems:
+```bash
+sudo apt update
+sudo apt install python3-pip python3-venv python3-dev
+```
+
 ### Option 1: CLI Version
 
 1. **Clone and Setup**
@@ -44,11 +64,40 @@ pip install -r requirements.txt
 ```
 
 2. **Configure Environment (Optional)**
+
+> **Note**: For convenience, this repository includes a pre-configured `.env` file with a working Mistral API key. You can use the agent immediately without creating your own account. However, if you want to use your own API key or customize the configuration, follow the steps below.
+
 ```bash
-cp .env.example .env
-# Edit .env file to add your Mistral API key for enhanced text generation:
-# MISTRAL_API_KEY=your_mistral_api_key_here
+# The .env file is already included in the repository
+# To customize it, edit the .env file directly:
+nano .env
 ```
+
+**Getting Your Own Mistral API Key (Optional):**
+
+If you prefer to use your own Mistral API key:
+
+1. **Create a Mistral AI Account**:
+   - Visit [https://console.mistral.ai/](https://console.mistral.ai/)
+   - Click "Sign Up" and create your account
+   - Verify your email address
+
+2. **Get Your API Key**:
+   - Log in to your Mistral AI console
+   - Navigate to "API Keys" in the sidebar
+   - Click "Create new key"
+   - Give your key a name (e.g., "F1 Agent")
+   - Copy the generated API key (it starts with something like `sk-...` or similar)
+
+3. **Add Your API Key**:
+   - Edit the `.env` file in the project root
+   - Replace `MISTRAL_API_KEY=your_mistral_api_key_here` with your actual key
+   - Save the file
+
+4. **API Usage & Pricing**:
+   - Mistral AI offers a free tier with limited usage
+   - Check current pricing at [https://mistral.ai/technology/#pricing](https://mistral.ai/technology/#pricing)
+   - The agent will fall back to template-based responses if the API key is invalid or quota is exceeded
 
 3. **Run CLI Interface**
 ```bash
@@ -78,9 +127,8 @@ python run_web.py --host 0.0.0.0 --port 8080 --debug
 git clone <repository-url>
 cd f1_racer_ai_agent
 
-# Copy environment file and configure (optional)
-cp .env.example .env
-# Edit .env to add your Mistral API key
+# The .env file is already included - no need to copy
+# Optionally edit .env to use your own Mistral API key (see instructions above)
 
 # Build and run
 docker-compose up --build
@@ -96,6 +144,30 @@ docker run -p 5000:5000 --env-file .env f1-racer-ai
 ```
 
 3. **Access the application at `http://localhost:5000`**
+
+**Stopping the Docker Container:**
+
+To stop and shut down the Docker container:
+
+```bash
+# If using Docker Compose (recommended):
+docker-compose down
+
+# To also remove the built image:
+docker-compose down --rmi all
+
+# If using Docker directly, first find the container:
+docker ps
+
+# Then stop it using the container ID or name:
+docker stop <container_id_or_name>
+
+# Remove the container:
+docker rm <container_id_or_name>
+
+# Remove the image (optional):
+docker rmi f1-racer-ai
+```
 
 ## Web Application User Guide
 
